@@ -6,3 +6,6 @@
  * and open the template in the editor.
  */
 
+$SUPERGLOBAL['config']['upload']['packetsize']=4096;
+$SUPERGLOBAL['config']['upload']['uploadlimit']=4096000;
+$SUPERGLOBAL['config']['upload']['uploadmaxpacketpersec']=1000;
