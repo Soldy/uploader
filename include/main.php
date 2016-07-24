@@ -5,7 +5,7 @@ $SUPERGLOBAL['config'] = [];
 
 
 
-
+require_once 'bye.php';
 require_once 'config.php';
 require_once 'sql.fun.php';
 require_once 'sql.php';
@@ -17,7 +17,10 @@ require_once 'file.upload.fun.php'; # file upload connection function
 require_once 'file.upload.php'; # file upload connection function
 require_once 'cron.php'; # cron server function
 
-function mainServe($_GET) {
+$bye = new outBye();
+
+function mainServe() {
+    global $bye;
     if (isset($_GET['f'])) {
         $fileId = $_GET['f'];
         $sql = new SQL();
@@ -25,74 +28,69 @@ function mainServe($_GET) {
         if ($fileType = $sql->getFileType($fileId)) {
             $fileupload->read($fileId, $fileType);
         } else {
-            echo("error");
+            return $bye->error("error");
         }
     } else {
-        echo ('error');
+        return $bye->error("error");
     }
 }
 
 function mainUpload($json) {
+    global $bye;
     $post = json_decode($json);
     $sql = new SQL();
     $fileupload = new fileUpload();
     if (!isset($post['c'])) {
-        echo ("missing command");
-        return false;
+        return $bye->error('missing command');
     }
+    $bye->out['command'] = $post['c'];
     if ($post['c'] == "r") {
         if (isset($post['s'])) {
-            echo('size missing');
-            return false;
+            return $bye->error('size missing');
         }
         if ((!is_int($post['s'])) && ($post['s'] < 0) && ($post['s'] > 99999999)) {
-            echo('size is irreal');
-            return false;
+            return $bye->error('size is irreal');
         }
-        if (!isset($fileupload->fileTypes($post['t']))) {
-            echo('File type error!');
-            return false;
+        if (!isset($fileupload->fileTypes[$post['t']])) {
+            return $bye->error('File type error!');
         }
         $pieces = floor($post['s'] / $fileupload->pieceSize);
         if ($pieces * $fileupload->pieceSize != $post['s'])
             $pieces + 1;
 
         if ($fileId = $sql->createFile($post['s'], $pieces, $post['t'])) {
-            echo ('{"c":"r","t":"r","i":"' . $fileId . '","p":"' . $pieces . '","s":'. $fileupload->pieceSize.'}');
+            $bye->out['fileId'] = $fileId;
+            $bye->out['pieces'] = $pieces;
+            $bye->out['pieceSize'] = $fileupload->pieceSize;
         } else {
-            echo("error");
+            return $bye->error("error");
         }
     } elseif ($post['c'] == "u") {
         if (isset($post['i'])) {
-            echo('fileId missing');
-            return false;
+            return $bye->error('fileId missing');
         }
         if (isset($post['p'])) {
-            echo('piece id missing');
-            return false;
+            return $bye->error('piece id missing');
         }
         if (isset($post['d'])) {
-            echo('data missing');
-            return false;
-        }        
+            return $bye->error('data missing');
+        }
         if (!($sql->checkFileProcess($post['i']))) {
-            echo('file not processing');
-            return false;            
+            return $bye->error('file not processing');
         }
-        if (!($sql->csetFilePiecesTry($post['i'], $post['p']))){
-            echo('file piece not processing');
-            return false;              
+        if (!($sql->csetFilePiecesTry($post['i'], $post['p']))) {
+            return $bye->error('file piece not processing');
         }
-        $fileupload->writePiece($post['i'], $post['p'],$post['d']);
+        $fileupload->writePiece($post['i'], $post['p'], $post['d']);
         $sql->setFilePieceOk($post['i'], $post['p']);
-        echo('{"c":"u","t":"r","i":"' . $post['i'] . '","p":"' . $post['p'] . '","s":"ok"}');
-        if($pieces = $sql->checkFileFinnished($post['i'])){
-            $sql-setFileOk($post['i']);
-            $fileupload->write($post['i'],$sql->getFileType($post['i']), $pieces);
+        $bye->out['fileId'] = $fileId;
+        $bye->out['pieces'] = $pieces;
+        if ($pieces = $sql->checkFileFinnished($post['i'])) {
+            $sql->setFileOk($post['i']);
+            $fileupload->write($post['i'], $sql->getFileType($post['i']), $pieces);
         }
-        
     } else {
-        echo('error unknown command');
+        return $bye->error('error unknown command');
     }
 }
 
@@ -101,8 +99,3 @@ if (count($_GET) > 0) {
 } else {
     mainUpload(file_get_contents("php://input"));
 }
-
-
-
-
-    

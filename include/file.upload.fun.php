@@ -79,15 +79,22 @@ class fileUpload {
         "rar" => "application/x-rar-compressed"
     );
 
-    protected function __construct() {
+    public function __construct() {
         
     }
 
-    protected function __destruct() {
+    public function __destruct() {
         
     }
 
-    protected function security($filename) {
+    public function checkFileType($type){
+        if (isset($this->fileTypes[$type])) {
+            return true;
+        }
+        return false;
+    }
+
+        protected function security($filename) {
         $path_parts = pathinfo($filename);
         return $path_parts['basename'];
     }

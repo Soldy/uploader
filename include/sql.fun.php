@@ -11,15 +11,7 @@
  */
 
 class SQL {
-    private $sql ;
-    
-    private static $config = [];
-    
-    private static $database  = "upload";
-
-    private static $user  = "username";
-
-    private static $password  = "password";
+    protected $sql ;
     
     public function insert(){
         #("INSERT INTO test(id) VALUES (1), (2), (3)")) 
@@ -37,7 +29,7 @@ class SQL {
         while($row = $res->fetch_array()){
             $rows[] = $row;
         }
-        $res->close();
+//        $res->close();
         return $rows;    
     }  
     
@@ -45,9 +37,13 @@ class SQL {
         return htmlspecialchars($string, ENT_QUOTES);
     }
     
-    public function connect(){
-        $this->sql = new mysqli('127.0.0.1', $this->user, $this->password, $this->database);
-        if ($this->sql->connect_errno) die ("die die die fucking process just died!");
+    protected function connect(){
+        global $SUPERGLOBAL;
+        $this->sql = new mysqli('127.0.0.1', $SUPERGLOBAL['config']['sql']['user'], $SUPERGLOBAL['config']['sql']['password'], $SUPERGLOBAL['config']['sql']['db']);
+        if ($this->sql->connect_errno){
+            error_log("mysql connect error ",1,"ld@bookluk.com");
+            die ("die die die fucking process just died!");
+        }
     }
 
     public function getSerial($name){ // inside serializer. Better if we do with care
@@ -150,13 +146,11 @@ class SQL {
     
     
     
-    protected function __construct (){
-        global $SUPERGLOBAL;
-        $this->config=$SUPERGLOBAL['config']['sql'];
+    public function __construct (){
         $this->connect();
     }
     
-    protected function __destruct() {
+    public function __destruct() {
      
     }
     
