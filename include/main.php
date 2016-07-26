@@ -37,61 +37,75 @@ function mainServe() {
 
 function mainUpload($json) {
     global $bye;
+    error_log($json);
     $post = json_decode($json);
     $sql = new SQL();
     $fileupload = new fileUpload();
-    if (!isset($post['c'])) {
+    if (!isset($post->command)) {
         return $bye->error('missing command');
     }
-    $bye->out['command'] = $post['c'];
-    if ($post['c'] == "r") {
-        if (isset($post['s'])) {
+    $bye->out['command'] = $post->command;
+    if ($post->command == "request") {
+        if (!isset($post->size)) {
             return $bye->error('size missing');
         }
-        if ((!is_int($post['s'])) && ($post['s'] < 0) && ($post['s'] > 99999999)) {
+        if ((!is_int($post->size)) && ($post->size < 0) && ($post->size > 99999999)) {
             return $bye->error('size is irreal');
         }
-        if (!isset($fileupload->fileTypes[$post['t']])) {
+        if (!$fileupload->checkFileType($post->type)) {
             return $bye->error('File type error!');
         }
-        $pieces = floor($post['s'] / $fileupload->pieceSize);
-        if ($pieces * $fileupload->pieceSize != $post['s'])
+        if (!isset($post->name)) {
+            return $bye->error('File name missing!');
+        }
+        $pieces = ceil($post->size / $fileupload->pieceSize);
+        if ($pieces * $fileupload->pieceSize < $post->size)
             $pieces + 1;
 
-        if ($fileId = $sql->createFile($post['s'], $pieces, $post['t'])) {
+        if ($fileId = $sql->createFile($post->size, $pieces, $post->type, $post->name)) {
             $bye->out['fileId'] = $fileId;
             $bye->out['pieces'] = $pieces;
             $bye->out['pieceSize'] = $fileupload->pieceSize;
         } else {
             return $bye->error("error");
         }
-    } elseif ($post['c'] == "u") {
-        if (isset($post['i'])) {
+    } elseif ($post->command == "upload") {
+        if (!isset($post->id)) {
             return $bye->error('fileId missing');
         }
-        if (isset($post['p'])) {
-            return $bye->error('piece id missing');
+        if (!isset($post->piece)) {
+            return $bye->error('piece missing');
         }
-        if (isset($post['d'])) {
+        if (!isset($post->data)) {
             return $bye->error('data missing');
         }
-        if (!($sql->checkFileProcess($post['i']))) {
+        error_log("-2");
+        if (!($sql->checkFileProcess($post->id))) {
             return $bye->error('file not processing');
         }
-        if (!($sql->csetFilePiecesTry($post['i'], $post['p']))) {
+        error_log("-1");
+        if (!($sql->checkFilePieces($post->id, $post->piece))) {
             return $bye->error('file piece not processing');
         }
-        $fileupload->writePiece($post['i'], $post['p'], $post['d']);
-        $sql->setFilePieceOk($post['i'], $post['p']);
-        $bye->out['fileId'] = $fileId;
-        $bye->out['pieces'] = $pieces;
-        if ($pieces = $sql->checkFileFinnished($post['i'])) {
-            $sql->setFileOk($post['i']);
-            $fileupload->write($post['i'], $sql->getFileType($post['i']), $pieces);
+        error_log("0");
+        $fileupload->writePiece($post->id, $post->piece, $post->data);
+        error_log("1");
+        $sql->setFilePieceOk($post->id, $post->piece);
+        error_log("2");
+        $bye->out['fileId'] = $post->id;
+        $bye->out['piece'] = $post->piece;
+        $pieces = $sql->checkFileFinnished($post->id);
+        error_log($pieces);
+        if ($pieces != false) {
+                    error_log("2.5");
+            $sql->setFileOk($post->id);
+            $fileupload->write($post->id, $sql->getFileType($post->id), $pieces);
+            $bye->out['command'] = "finnished";
         }
     } else {
         return $bye->error('error unknown command');
     }
+    $bye->bye();
 }
 
 if (count($_GET) > 0) {
