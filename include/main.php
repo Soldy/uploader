@@ -37,7 +37,6 @@ function mainServe() {
 
 function mainUpload($json) {
     global $bye;
-    error_log($json);
     $post = json_decode($json);
     $sql = new SQL();
     $fileupload = new fileUpload();
@@ -79,25 +78,18 @@ function mainUpload($json) {
         if (!isset($post->data)) {
             return $bye->error('data missing');
         }
-        error_log("-2");
         if (!($sql->checkFileProcess($post->id))) {
             return $bye->error('file not processing');
         }
-        error_log("-1");
         if (!($sql->checkFilePieces($post->id, $post->piece))) {
             return $bye->error('file piece not processing');
         }
-        error_log("0");
         $fileupload->writePiece($post->id, $post->piece, $post->data);
-        error_log("1");
         $sql->setFilePieceOk($post->id, $post->piece);
-        error_log("2");
         $bye->out['fileId'] = $post->id;
         $bye->out['piece'] = $post->piece;
         $pieces = $sql->checkFileFinnished($post->id);
-        error_log($pieces);
         if ($pieces != false) {
-                    error_log("2.5");
             $sql->setFileOk($post->id);
             $fileupload->write($post->id, $sql->getFileType($post->id), $pieces);
             $bye->out['command'] = "finnished";

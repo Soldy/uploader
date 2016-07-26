@@ -7,7 +7,7 @@
  */
 
 class fileUpload {
-    public $pieceSize = 20480;
+    public $pieceSize = 512000;
     public $fileDir = "/tmp/upload/files";
     public $pieceDir = "/tmp/upload/pieces";
     public $dir = "/tmp/upload";
