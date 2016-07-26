@@ -7,11 +7,12 @@
  */
 
 class fileUpload {
-    protected static $pieceSize = 2048;
-    protected static $fileDir = "/tmp/upload/file";
-    protected static $pieceDir = "/tmp/upload/pieces";
-    protected static $dir = "/tmp/upload";
-    protected static $fileTypes = array(
+    public $pieceSize = 20480;
+    public $fileDir = "/tmp/upload/files";
+    public $pieceDir = "/tmp/upload/pieces";
+    public $dir = "/tmp/upload";
+    public $fileTypesList = array("image/bmp", "image/g3fax", "image/gif", "image/jpeg", "image/png", "image/svg", "image/tiff", "image/x-icon", "image/x-pcx", "image/x-pict", "application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/vnd.openxmlformats-officedocument.wordprocessingml.template", "application/vnd.oasis.opendocument.text", "application/xhtml+xml", "application/xcap-diff+xml", "application/xml", "application/xml-dtd", "application/xslt+xml", "audio/adpcm", "audio/basic", "audio/midi", "audio/mp4", "audio/mpeg", "audio/ogg", "audio/webm", "audio/xwav", "video/3gpp", "video/3gpp2", "video/h261", "video/h263", "video/h264", "video/jpeg", "video/jpm", "video/mp4", "video/mpeg", "video/ogg", "video/quicktime", "video/webm", "video/x-f4v", "video/x-fli", "video/x-flv", "video/x-m4v", "video/x-ms-asf", "video/x-ms-wm", "video/x-ms-wmv", "video/x-ms-wmx", "video/x-ms-wvx", "video/x-msvideo", "video/x-sgi-movie", "video/x-matroska", "text/css", "text/cvs", "text/html", "text/plain", "text/richtext", "application/x-gzip", "application/tar+gzip", "application/tar", 'application/x-bzip2', 'application/tar+bzip2', 'application/zip', "application/x-7z-compressed", "application/x-rar-compressed");    
+    public $fileTypes = array(
         "bmp" => "image/bmp",
         "g3" => "image/g3fax",
         "gif" => "image/gif",
@@ -88,6 +89,9 @@ class fileUpload {
     }
 
     public function checkFileType($type){
+        error_log("anyad".$type);
+        error_log($this->fileTypesList[1]);
+        if(in_array($type, $this->fileTypesList))            return true;
         if (isset($this->fileTypes[$type])) {
             return true;
         }
@@ -95,23 +99,24 @@ class fileUpload {
     }
 
         protected function security($filename) {
+        
         $path_parts = pathinfo($filename);
         return $path_parts['basename'];
     }
 
-    protected function write($fileId, $type, $pieces) {
-        for($i = 0;$i<$pieces; $i++) 
-                file_put_contents($this->fileDir . $this->security($fileId . "." . $type), readfile($this->fileDir . $this->security($fileId . ".piece." . $piece . ".split")), FILE_APPEND);
+    public function write($fileId, $type, $pieces) {
+        for($piece = 0;$piece<=$pieces; $piece++) 
+            file_put_contents($this->fileDir. "/". $this->security($fileId . ".store"),  file_get_contents($this->pieceDir. "/". $this->security($fileId . ".piece." . $piece . ".split")), FILE_APPEND);
     }
 
 
-    protected function read($fileId, $type) {
-        header("Content-type: ". $this->fileTypes[$type]);
-        echo readfile($this->fileDir . $this->security($fileId . "." . $type));
+    public function read($fileId, $type) {
+        header("Content-type: ". $type);
+        echo readfile($this->fileDir. "/". $this->security($fileId . ".store"));
     }
 
-    protected function writePiece($fileId, $piece, $data) {
-        file_put_contents($this->pieceDir . $this->security($fileId . ".piece." . $piece . ".split"), base64_decode($data));
+    public function writePiece($fileId, $piece, $data) {
+        file_put_contents($this->pieceDir. "/". $this->security($fileId . ".piece." . $piece . ".split"), base64_decode($data));
     }
 
 }
