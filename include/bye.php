@@ -13,7 +13,7 @@ class outBye {
     public $header = 'Content-Type: application/json';
 
     public function __construct() {
-        $this->out['status'] = ['ok'];
+        $this->out['status'] = 'ok';
     }
 
     public function error($error) {
@@ -28,6 +28,7 @@ class outBye {
     }
 
     public function __destruct() {
+        
         header($this->header);        
         print $this->echo;
     }
