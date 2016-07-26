@@ -1,6 +1,15 @@
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
+--
+-- Database: `upload`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `fileAccesKey`
+--
 
 CREATE TABLE IF NOT EXISTS `fileAccesKey` (
 `serial` int(11) NOT NULL,
@@ -13,7 +22,11 @@ CREATE TABLE IF NOT EXISTS `fileAccesKey` (
   `secretKey` varchar(1024) NOT NULL COMMENT 'A hozzaferes hulcsa'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- --------------------------------------------------------
 
+--
+-- Table structure for table `fileGroupKey`
+--
 
 CREATE TABLE IF NOT EXISTS `fileGroupKey` (
 `serial` int(11) NOT NULL,
@@ -26,6 +39,11 @@ CREATE TABLE IF NOT EXISTS `fileGroupKey` (
   `secretKey` varchar(1024) NOT NULL COMMENT 'A hozzaferes hulcsa'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `fileList`
+--
 
 CREATE TABLE IF NOT EXISTS `fileList` (
 `serial` bigint(20) NOT NULL,
@@ -37,10 +55,15 @@ CREATE TABLE IF NOT EXISTS `fileList` (
   `filePieceNumber` int(200) NOT NULL COMMENT 'file darabok szama',
   `filePieceNumberStatus` bigint(20) NOT NULL COMMENT '2 es szamrendszerbe megadott file darabok osszesitese',
   `uploadFinishedStamp` int(11) NOT NULL COMMENT 'A file feltoltes befejezesenek datuma',
-  `access` int(11) NOT NULL COMMENT 'hozza feres egyenlore 0 publikus 1 privat'
+  `access` int(11) NOT NULL COMMENT 'hozza feres egyenlore 0 publikus 1 privat',
+  `fileName` varchar(500) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- --------------------------------------------------------
 
+--
+-- Table structure for table `fileMasterKey`
+--
 
 CREATE TABLE IF NOT EXISTS `fileMasterKey` (
 `serial` int(11) NOT NULL,
@@ -52,6 +75,25 @@ CREATE TABLE IF NOT EXISTS `fileMasterKey` (
   `secretKey` varchar(1024) NOT NULL COMMENT 'A hozzaferes hulcsa'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `filePieces`
+--
+
+CREATE TABLE IF NOT EXISTS `filePieces` (
+`serial` bigint(20) unsigned NOT NULL,
+  `id` varchar(20) NOT NULL,
+  `fileId` varchar(20) NOT NULL,
+  `status` varchar(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `logAccess`
+--
+
 CREATE TABLE IF NOT EXISTS `logAccess` (
 `serial` int(11) NOT NULL,
   `accessTime` int(11) NOT NULL COMMENT 'hozzaferes unix timestampja',
@@ -59,6 +101,12 @@ CREATE TABLE IF NOT EXISTS `logAccess` (
   `userAgent` varchar(500) NOT NULL COMMENT 'a kliens userAgent',
   `fileId` varchar(500) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `logAccessAccessKey`
+--
 
 CREATE TABLE IF NOT EXISTS `logAccessAccessKey` (
 `serial` int(11) NOT NULL,
@@ -69,7 +117,11 @@ CREATE TABLE IF NOT EXISTS `logAccessAccessKey` (
   `accessKey` varchar(2000) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- --------------------------------------------------------
 
+--
+-- Table structure for table `logAccessDeneid`
+--
 
 CREATE TABLE IF NOT EXISTS `logAccessDeneid` (
 `serial` int(11) NOT NULL,
@@ -82,6 +134,11 @@ CREATE TABLE IF NOT EXISTS `logAccessDeneid` (
   `masterKey` varchar(2000) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `logAccessGroupKey`
+--
 
 CREATE TABLE IF NOT EXISTS `logAccessGroupKey` (
 `serial` int(11) NOT NULL,
@@ -92,6 +149,11 @@ CREATE TABLE IF NOT EXISTS `logAccessGroupKey` (
   `groupKey` varchar(2000) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `logAccessMasterKey`
+--
 
 CREATE TABLE IF NOT EXISTS `logAccessMasterKey` (
   `serial` int(11) NOT NULL,
@@ -102,7 +164,11 @@ CREATE TABLE IF NOT EXISTS `logAccessMasterKey` (
   `masterKey` varchar(2000) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- --------------------------------------------------------
 
+--
+-- Table structure for table `serial`
+--
 
 CREATE TABLE IF NOT EXISTS `serial` (
 `serial` bigint(20) unsigned NOT NULL,
@@ -111,59 +177,121 @@ CREATE TABLE IF NOT EXISTS `serial` (
   `comment` text CHARACTER SET latin1 NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- Indexes for dumped tables
+--
 
+--
+-- Indexes for table `fileAccesKey`
+--
 ALTER TABLE `fileAccesKey`
  ADD PRIMARY KEY (`serial`), ADD KEY `serial` (`serial`);
 
-
+--
+-- Indexes for table `fileGroupKey`
+--
 ALTER TABLE `fileGroupKey`
  ADD PRIMARY KEY (`serial`), ADD KEY `serial` (`serial`);
 
-
+--
+-- Indexes for table `fileList`
+--
 ALTER TABLE `fileList`
  ADD PRIMARY KEY (`serial`), ADD KEY `serial` (`serial`);
 
+--
+-- Indexes for table `fileMasterKey`
+--
 ALTER TABLE `fileMasterKey`
  ADD PRIMARY KEY (`serial`), ADD KEY `serial` (`serial`);
 
+--
+-- Indexes for table `filePieces`
+--
+ALTER TABLE `filePieces`
+ ADD PRIMARY KEY (`serial`), ADD KEY `serial` (`serial`);
+
+--
+-- Indexes for table `logAccess`
+--
 ALTER TABLE `logAccess`
  ADD PRIMARY KEY (`serial`), ADD KEY `serial` (`serial`);
 
+--
+-- Indexes for table `logAccessAccessKey`
+--
 ALTER TABLE `logAccessAccessKey`
  ADD PRIMARY KEY (`serial`), ADD KEY `serial` (`serial`);
 
+--
+-- Indexes for table `logAccessDeneid`
+--
 ALTER TABLE `logAccessDeneid`
  ADD PRIMARY KEY (`serial`), ADD KEY `serial` (`serial`);
 
+--
+-- Indexes for table `logAccessGroupKey`
+--
 ALTER TABLE `logAccessGroupKey`
  ADD PRIMARY KEY (`serial`), ADD KEY `serial` (`serial`);
 
+--
+-- Indexes for table `serial`
+--
 ALTER TABLE `serial`
  ADD PRIMARY KEY (`serial`), ADD KEY `serial` (`serial`);
 
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `fileAccesKey`
+--
 ALTER TABLE `fileAccesKey`
 MODIFY `serial` int(11) NOT NULL AUTO_INCREMENT;
-
+--
+-- AUTO_INCREMENT for table `fileGroupKey`
+--
 ALTER TABLE `fileGroupKey`
 MODIFY `serial` int(11) NOT NULL AUTO_INCREMENT;
-
+--
+-- AUTO_INCREMENT for table `fileList`
+--
 ALTER TABLE `fileList`
 MODIFY `serial` bigint(20) NOT NULL AUTO_INCREMENT;
-
+--
+-- AUTO_INCREMENT for table `fileMasterKey`
+--
 ALTER TABLE `fileMasterKey`
 MODIFY `serial` int(11) NOT NULL AUTO_INCREMENT;
-
+--
+-- AUTO_INCREMENT for table `filePieces`
+--
+ALTER TABLE `filePieces`
+MODIFY `serial` bigint(20) unsigned NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `logAccess`
+--
 ALTER TABLE `logAccess`
 MODIFY `serial` int(11) NOT NULL AUTO_INCREMENT;
-
+--
+-- AUTO_INCREMENT for table `logAccessAccessKey`
+--
 ALTER TABLE `logAccessAccessKey`
 MODIFY `serial` int(11) NOT NULL AUTO_INCREMENT;
-
+--
+-- AUTO_INCREMENT for table `logAccessDeneid`
+--
 ALTER TABLE `logAccessDeneid`
 MODIFY `serial` int(11) NOT NULL AUTO_INCREMENT;
-
+--
+-- AUTO_INCREMENT for table `logAccessGroupKey`
+--
 ALTER TABLE `logAccessGroupKey`
 MODIFY `serial` int(11) NOT NULL AUTO_INCREMENT;
-
+--
+-- AUTO_INCREMENT for table `serial`
+--
 ALTER TABLE `serial`
 MODIFY `serial` bigint(20) unsigned NOT NULL AUTO_INCREMENT;
