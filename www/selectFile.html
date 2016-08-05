@@ -4,28 +4,50 @@
         <style>
             body{
                 position:absolute;
-                background:#d4ebff;
+                background:#fff;
                 width:1980px;
                 height:1080px;
                 margin:0;
-                -webkit-box-shadow: inset 22px 10px 347px 18px rgba(0,134,224,1);
-                -moz-box-shadow: inset 22px 10px 347px 18px rgba(0,134,224,1);
-                box-shadow: inset 22px 10px 347px 18px rgba(0,134,224,1);
                 overflow:hidden;
+            }
+            .statusBars{
+                position:relative;
+                float:left;
+                minheight:20px;
+                width:300px;
             }
             .statusBarHouse{
                 position:relative;
+                float:left;
                 height:9px;
                 width:104px;
+                margin:4px;
                 background:#fff;
                 border:solid 1px #000;
             }
             .statusBar{
-                position:relative;
+                position:absolute;
                 height:5px;
                 width:0px;
                 margin:2px;
                 background:#aaa; 
+            }
+            .statusBarFinnished{
+                background-color:#18ff00 !important;
+            }
+            .statusShell{
+                position:relative;
+                width:300px;
+                height:20px;
+            }
+            .statusFile{
+                position:relative;
+                float:left;
+                width:150px;
+                height:15px;
+                font-size:12px;
+                overflow:hidden;
+                text-overflow:ellipsis;
             }            
         </style>
         <script>
@@ -33,18 +55,24 @@
         </script>
     </head>
     <body>
-        <input type="file" id="files" name="file" /> 
-        <button id="fileSendButton">send file</button>
-        <div class="statusBarHouse"><div class="statusBar" id="statusBar"  ></div></div>
+        <div>
+            <input type="file" id="files" name="file" multiple="multiple"/> 
+            <button id="fileSendButton">send file</button>
+        </div>
+        <div class="statusBars" id="statusBars"></div>
+
         <script>
 
 
-            var fileRead = new FileReader();
-            var pieces = {};
-/*
-            function uploader(fileElement, element) {
+            var ids = 0;
+            var uploadProcesss = {};
+
+
+            function uploader(file, id, element) {
                 this.element = element;
-                this.files = fileElement;
+                this.file = file;
+                this.id = id;
+                this.fileId;
                 this.pieces = {};
                 this.barMax = 100;
                 this.netSend = function (send) {
@@ -53,121 +81,65 @@
                     } else {
                         var xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
                     }
-                    xmlhttp.onreadystatechange = function () {
-                        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-                            var incomming = JSON.parse(xmlhttp.responseText.toString());
-                            if ((incomming.command == "request") && (incomming.status == "ok")) {
-                                this.registerUpload(incomming);
-                            } else if ((incomming.command == "upload") && (incomming.status == "ok")) {
-                                this.pieces[incomming.fileId].piece++;
-                                this.pieceUpload(incomming.fileId);
-                            }
-
-                        }
-                    };
+                    var fun = ("xmlhttp.onreadystatechange = function () { if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {var incomming = JSON.parse(xmlhttp.responseText.toString());if ((incomming.command == 'request') && (incomming.status == 'ok')) {uploadProcesss['" + this.id.toString() + "'].registerUpload(incomming);} else if ((incomming.command == 'upload') && (incomming.status == 'ok')) {uploadProcesss['" + this.id.toString() + "'].pieces.piece++;uploadProcesss['" + this.id.toString() + "'].pieceUpload();}else if ((incomming.command == 'finnished') && (incomming.status == 'ok')) {uploadProcesss['" + this.id.toString() + "'].finnishedBar();}}}");
+                    eval(fun);
                     xmlhttp.overrideMimeType('application/json');
                     xmlhttp.open("POST", "/", true);
                     xmlhttp.send(JSON.stringify(send));
 
                 }
-                function startUpload = functon(element) {
-                    if (!this.files.length) {
-                        alert('Please select a file!');
-                        return;
-                    }
-                    var file = this.files[0];
-                    this.netSend({command: "request", size: file.size.toString(), type: file.type.toString(), name: file.name.toString()});
+                this.startUpload = function () {
+                    this.netSend({command: "request", size: this.file.size.toString(), type: this.file.type.toString(), name: this.file.name.toString()});
                 }
-                this.pieceUpload = function (id) {
-                    this.files;
-                    if (!files.length) {
-                        alert('Please select a file!');
-                        return;
+                this.registerUpload = function (incomming) {
+                    this.pieces = {
+                        pieceEnd: incomming.pieces,
+                        size: incomming.pieceSize,
+                        piece: 0
                     }
-                    var file = this.files[0];
+                    document.getElementById("statusFile_" + this.id.toString()).innerHTML = this.file.name.toString();
+                    this.fileId = incomming.fileId;
+                    this.pieceUpload();
+                }
+                this.makeBar = function () {
+                    this.element.innerHTML += '<div class="statusShell" id="statusShell_' + this.id + '"><div class="statusBarHouse" id="statusBarHouse_' + this.id + '"><div class="statusBar" id="statusBar_' + this.id + '"  ></div></div><div class="statusFile" id="statusFile_' + this.id + '"  ></div></div>';
+                }
+                this.finnishedBar = function () {
+                    document.getElementById('statusBar_' + this.id.toString()).className += " statusBarFinnished";
+                    this.barRefreshUpload();
+                }                
+                this.barRefreshUpload = function () {
+                    document.getElementById('statusBar_' + this.id.toString()).style.width = ((this.barMax / this.pieces.pieceEnd) * (this.pieces.piece + 1)).toString() + "px";
+                }
+                this.pieceUpload = function () {
+                    this.barRefreshUpload();
                     var reader = new FileReader();
-                    reader.onloadend = function (evt) {
-                        if (evt.target.readyState == FileReader.DONE) { // DONE == 2
-                            this.netSend({command: "upload", id: id, piece: pieces[id.toString()].piece, data: btoa(evt.target.result)});
-                        }
-                    };
-
-                    var blob = file.slice((pieces[id.toString()].piece * this.pieces[id.toString()].size), ((this.pieces[id.toString()].piece + 1) * this.pieces[id.toString()].size));
+                    var fun = "reader.onloadend = function (evt) {if (evt.target.readyState == FileReader.DONE) {uploadProcesss['" + this.id.toString() + "'].netSend({command: 'upload', id: uploadProcesss['" + this.id.toString() + "'].fileId, piece: '" + this.pieces.piece + "', data: btoa(evt.target.result)});}};";
+                    eval(fun);
+                    var blob = this.file.slice((this.pieces.piece * this.pieces.size), ((this.pieces.piece + 1) * this.pieces.size));
                     reader.readAsBinaryString(blob);
                 }
-
+                this.makeBar();
+                this.startUpload();
             }
-*/
 
-            function netSend(send) {
-                if (window.XMLHttpRequest) {
-                    var xmlhttp = new XMLHttpRequest();
-                } else {
-                    var xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+
+            function uploadMaker(element) {
+                var files = document.getElementById('files').files;
+                if (!files.length) {
+                    alert('Please select a file!');
+                    return;
                 }
-                xmlhttp.onreadystatechange = function () {
-                    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-                        console.log(xmlhttp.responseText.toString());
-                        var incomming = JSON.parse(xmlhttp.responseText.toString());
-                        if ((incomming.command == "request") && (incomming.status == "ok")) {
-                            registerUpload(incomming);
-                        } else if ((incomming.command == "upload") && (incomming.status == "ok")) {
-                            pieces[incomming.fileId].piece++;
-                            pieceUpload(incomming.fileId);
-                            barRefreshUpload(incomming.fileId);
-                        }
-
-                    }
-                };
-                xmlhttp.overrideMimeType('application/json');
-                xmlhttp.open("POST", "/", true);
-                xmlhttp.send(JSON.stringify(send));
+                for (var i = 0; i < files.length; i++) {
+                    uploadProcesss[ids.toString()] = new uploader(files[i], ids, element);
+                    ids++;
+                }
 
             }
 
             document.getElementById('fileSendButton').addEventListener('click', function () {
-                startUpload();
+                uploadMaker(document.getElementById("statusBars"));
             });
-
-            function barRefreshUpload(id) {
-                document.getElementById("statusBar").style.width = ((100/pieces[id.toString()].pieceEnd)*(pieces[id.toString()].piece+1))+"px"
-            }
-            function registerUpload(incomming) {
-                pieces[incomming.fileId.toString()] = {
-                    pieceEnd: incomming.pieces,
-                    size: incomming.pieceSize,
-                    piece: 0
-                }
-                pieceUpload(incomming.fileId);
-            }
-            function pieceUpload(id) {
-                var files = document.getElementById('files').files;
-                if (!files.length) {
-                    alert('Please select a file!');
-                    return;
-                }
-                var file = files[0];
-                var reader = new FileReader();
-                reader.onloadend = function (evt) {
-                    if (evt.target.readyState == FileReader.DONE) { // DONE == 2
-                        netSend({command: "upload", id: id, piece: pieces[id.toString()].piece, data: btoa(evt.target.result)});
-                    }
-                };
-
-                var blob = file.slice((pieces[id.toString()].piece * pieces[id.toString()].size), ((pieces[id.toString()].piece + 1) * pieces[id.toString()].size));
-                reader.readAsBinaryString(blob);
-            }
-
-            function startUpload(el) {
-                var files = document.getElementById('files').files;
-                if (!files.length) {
-                    alert('Please select a file!');
-                    return;
-                }
-                var file = files[0];
-                console.log(file);
-                netSend({command: "request", size: file.size.toString(), type: file.type.toString(), name: file.name.toString()});
-            }
         </script>
 
     </body>
