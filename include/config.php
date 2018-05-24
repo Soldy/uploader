@@ -9,4 +9,7 @@ require_once '../conf/file.php';
 $SUPERGLOBAL['config']['upload']=[];
 require_once '../conf/upload.php';
 
+$SUPERGLOBAL['config']['rights']=[];
+require_once '../conf/rights.php';
+
 

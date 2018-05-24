@@ -7,11 +7,12 @@
  */
 
 class fileUpload {
+
     public $pieceSize = 512000;
     public $fileDir = "/tmp/upload/files";
     public $pieceDir = "/tmp/upload/pieces";
     public $dir = "/tmp/upload";
-    public $fileTypesList = array("image/bmp", "image/g3fax", "image/gif", "image/jpeg", "image/png", "image/svg", "image/tiff", "image/x-icon", "image/x-pcx", "image/x-pict", "application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/vnd.openxmlformats-officedocument.wordprocessingml.template", "application/vnd.oasis.opendocument.text", "application/xhtml+xml", "application/xcap-diff+xml", "application/xml", "application/xml-dtd", "application/xslt+xml", "audio/adpcm", "audio/basic", "audio/midi", "audio/mp4", "audio/mpeg", "audio/ogg", "audio/webm", "audio/xwav", "video/3gpp", "video/3gpp2", "video/h261", "video/h263", "video/h264", "video/jpeg", "video/jpm", "video/mp4", "video/mpeg", "video/ogg", "video/quicktime", "video/webm", "video/x-f4v", "video/x-fli", "video/x-flv", "video/x-m4v", "video/x-ms-asf", "video/x-ms-wm", "video/x-ms-wmv", "video/x-ms-wmx", "video/x-ms-wvx", "video/x-msvideo", "video/x-sgi-movie", "video/x-matroska", "text/css", "text/cvs", "text/html", "text/plain", "text/richtext", "application/x-gzip", "application/tar+gzip", "application/tar", 'application/x-bzip2', 'application/tar+bzip2', 'application/zip', "application/x-7z-compressed", "application/x-rar-compressed");    
+    public $fileTypesList = array("image/bmp", "image/g3fax", "image/gif", "image/jpeg", "image/png", "image/svg", "image/tiff", "image/x-icon", "image/x-pcx", "image/x-pict", "application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/vnd.openxmlformats-officedocument.wordprocessingml.template", "application/vnd.oasis.opendocument.text", "application/xhtml+xml", "application/xcap-diff+xml", "application/xml", "application/xml-dtd", "application/xslt+xml", "audio/adpcm", "audio/basic", "audio/midi", "audio/mp4", "audio/mpeg", "audio/ogg", "audio/webm", "audio/xwav", "video/3gpp", "video/3gpp2", "video/h261", "video/h263", "video/h264", "video/jpeg", "video/jpm", "video/mp4", "video/mpeg", "video/ogg", "video/quicktime", "video/webm", "video/x-f4v", "video/x-fli", "video/x-flv", "video/x-m4v", "video/x-ms-asf", "video/x-ms-wm", "video/x-ms-wmv", "video/x-ms-wmx", "video/x-ms-wvx", "video/x-msvideo", "video/x-sgi-movie", "video/x-matroska", "text/css", "text/cvs", "text/html", "text/plain", "text/richtext", "application/x-gzip", "application/tar+gzip", "application/tar", 'application/x-bzip2', 'application/tar+bzip2', 'application/zip', "application/x-7z-compressed", "application/x-rar-compressed");
     public $fileTypes = array(
         "bmp" => "image/bmp",
         "g3" => "image/g3fax",
@@ -81,42 +82,70 @@ class fileUpload {
     );
 
     public function __construct() {
-        
+        global $SUPERGLOBAL;
+        $this->dir = $SUPERGLOBAL['config']['file']['www'];
+        $this->pieceDir = $SUPERGLOBAL['config']['file']['tmp'];
+        $this->fileDir = $SUPERGLOBAL['config']['file']['files'];
     }
 
     public function __destruct() {
         
     }
 
-    public function checkFileType($type){
-        error_log("anyad".$type);
-        error_log($this->fileTypesList[1]);
-        if(in_array($type, $this->fileTypesList))            return true;
+    /**
+     * 
+     * @param string $type
+     * @return boolean
+     */
+    public function checkFileType($type) {
+        if (in_array($type, $this->fileTypesList))
+            return true;
         if (isset($this->fileTypes[$type])) {
             return true;
         }
         return false;
     }
 
-        protected function security($filename) {
-        
+    /**
+     * 
+     * @param string $filename
+     * @return string
+     */
+    protected function security($filename) {
         $path_parts = pathinfo($filename);
         return $path_parts['basename'];
     }
 
+    /**
+     * 
+     * @param string $fileId
+     * @param string $type
+     * @param string $pieces
+     */
     public function write($fileId, $type, $pieces) {
-        for($piece = 0;$piece<=$pieces; $piece++) 
-            file_put_contents($this->fileDir. "/". $this->security($fileId . ".store"),  file_get_contents($this->pieceDir. "/". $this->security($fileId . ".piece." . $piece . ".split")), FILE_APPEND);
+        for ($piece = 0; $piece <= $pieces; $piece++){
+            file_put_contents($this->fileDir . "/" . $this->security($fileId . ".store"), file_get_contents($this->pieceDir . "/" . $this->security($fileId . ".piece." . $piece . ".split")), FILE_APPEND);
+        }            
     }
 
-
+    /**
+     * 
+     * @param string $fileId
+     * @param string $type
+     */
     public function read($fileId, $type) {
-        header("Content-type: ". $type);
-        echo readfile($this->fileDir. "/". $this->security($fileId . ".store"));
+//        header("Content-type: " . $type);
+        echo readfile($this->fileDir . "/" . $this->security($fileId . ".store"));
     }
 
+    /**
+     * 
+     * @param string $fileId
+     * @param string $piece
+     * @param string $data
+     */
     public function writePiece($fileId, $piece, $data) {
-        file_put_contents($this->pieceDir. "/". $this->security($fileId . ".piece." . $piece . ".split"), base64_decode($data));
+        file_put_contents($this->pieceDir . "/" . $this->security($fileId . ".piece." . $piece . ".split"), base64_decode($data));
     }
 
 }
