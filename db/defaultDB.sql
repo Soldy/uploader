@@ -1,4 +1,5 @@
 
+
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
 START TRANSACTION;
@@ -8,12 +9,58 @@ SET time_zone = "+00:00";
 -- Database: `uploader`
 --
 
+DELIMITER $$
+--
+-- Functions
+--
+DROP FUNCTION IF EXISTS `getId`$$
+CREATE DEFINER=`root`@`localhost` FUNCTION `getId` (`NAMEIN` VARCHAR(45) CHARSET utf8) RETURNS VARCHAR(20) CHARSET utf8 NO SQL
+BEGIN
+    RETURN (SELECT CONCAT((SELECT getRandomChars(2)), (SELECT getSerial(NAMEIN)), (SELECT getRandomChars(2))));
+END$$
+
+DROP FUNCTION IF EXISTS `getRandomChar`$$
+CREATE DEFINER=`root`@`localhost` FUNCTION `getRandomChar` () RETURNS VARCHAR(1) CHARSET utf8 NO SQL
+BEGIN
+   RETURN (SELECT substring('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', rand()*62,1 ));
+END$$
+
+DROP FUNCTION IF EXISTS `getRandomChars`$$
+CREATE DEFINER=`root`@`localhost` FUNCTION `getRandomChars` (`iterati` INT UNSIGNED) RETURNS VARCHAR(1000) CHARSET utf8 NO SQL
+BEGIN
+  DECLARE OUTPUT VARCHAR(1000) default '';
+  DECLARE I INT default 1;  
+  WHILE I <= iterati DO
+    SET OUTPUT = CONCAT(OUTPUT, (SELECT getRandomChar()));
+    SET I = I + 1;
+  END WHILE;  
+  RETURN OUTPUT;
+END$$
+
+DROP FUNCTION IF EXISTS `getSerial`$$
+CREATE DEFINER=`root`@`localhost` FUNCTION `getSerial` (`NAMEIN` VARCHAR(45) CHARSET utf8) RETURNS INT(11) MODIFIES SQL DATA
+    DETERMINISTIC
+BEGIN
+   DECLARE SERIAL BIGINT UNSIGNED;
+   SET SERIAL =  (SELECT  value FROM `serial` WHERE `name`=NAMEIN LIMIT 1);
+   IF(IsNull(SERIAL)) THEN   
+       INSERT INTO `serial` (`name`, `value`) VALUES (NAMEIN, '1');
+       SET SERIAL = 0;
+   ELSE
+       UPDATE `serial` SET `value`=SERIAL+1 WHERE `name`=NAMEIN;
+   END IF;
+   RETURN SERIAL;
+END$$
+
+DELIMITER ;
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `fileAccesKey`
 --
 
+DROP TABLE IF EXISTS `fileAccesKey`;
 CREATE TABLE `fileAccesKey` (
   `serial` int(11) NOT NULL,
   `id` varchar(200) NOT NULL,
@@ -31,6 +78,7 @@ CREATE TABLE `fileAccesKey` (
 -- Table structure for table `fileGroupKey`
 --
 
+DROP TABLE IF EXISTS `fileGroupKey`;
 CREATE TABLE `fileGroupKey` (
   `serial` int(11) NOT NULL,
   `id` varchar(200) NOT NULL,
@@ -48,6 +96,7 @@ CREATE TABLE `fileGroupKey` (
 -- Table structure for table `fileList`
 --
 
+DROP TABLE IF EXISTS `fileList`;
 CREATE TABLE `fileList` (
   `serial` bigint(20) NOT NULL,
   `id` varchar(200) NOT NULL,
@@ -69,6 +118,7 @@ CREATE TABLE `fileList` (
 -- Table structure for table `fileMasterKey`
 --
 
+DROP TABLE IF EXISTS `fileMasterKey`;
 CREATE TABLE `fileMasterKey` (
   `serial` int(11) NOT NULL,
   `id` varchar(200) NOT NULL,
@@ -85,6 +135,7 @@ CREATE TABLE `fileMasterKey` (
 -- Table structure for table `filePieces`
 --
 
+DROP TABLE IF EXISTS `filePieces`;
 CREATE TABLE `filePieces` (
   `serial` bigint(20) UNSIGNED NOT NULL,
   `id` varchar(20) NOT NULL,
@@ -98,6 +149,7 @@ CREATE TABLE `filePieces` (
 -- Table structure for table `logAccess`
 --
 
+DROP TABLE IF EXISTS `logAccess`;
 CREATE TABLE `logAccess` (
   `serial` int(11) NOT NULL,
   `accessTime` int(11) NOT NULL COMMENT 'hozzaferes unix timestampja',
@@ -112,6 +164,7 @@ CREATE TABLE `logAccess` (
 -- Table structure for table `logAccessAccessKey`
 --
 
+DROP TABLE IF EXISTS `logAccessAccessKey`;
 CREATE TABLE `logAccessAccessKey` (
   `serial` int(11) NOT NULL,
   `accessTime` int(11) NOT NULL COMMENT 'hozzaferes unix timestampja',
@@ -127,6 +180,7 @@ CREATE TABLE `logAccessAccessKey` (
 -- Table structure for table `logAccessDeneid`
 --
 
+DROP TABLE IF EXISTS `logAccessDeneid`;
 CREATE TABLE `logAccessDeneid` (
   `serial` int(11) NOT NULL,
   `accessTime` int(11) NOT NULL COMMENT 'hozzaferes unix timestampja',
@@ -144,6 +198,7 @@ CREATE TABLE `logAccessDeneid` (
 -- Table structure for table `logAccessGroupKey`
 --
 
+DROP TABLE IF EXISTS `logAccessGroupKey`;
 CREATE TABLE `logAccessGroupKey` (
   `serial` int(11) NOT NULL,
   `accessTime` int(11) NOT NULL COMMENT 'hozzaferes unix timestampja',
@@ -159,6 +214,7 @@ CREATE TABLE `logAccessGroupKey` (
 -- Table structure for table `logAccessMasterKey`
 --
 
+DROP TABLE IF EXISTS `logAccessMasterKey`;
 CREATE TABLE `logAccessMasterKey` (
   `serial` int(11) NOT NULL,
   `accessTime` int(11) NOT NULL COMMENT 'hozzaferes unix timestampja',
@@ -174,6 +230,7 @@ CREATE TABLE `logAccessMasterKey` (
 -- Table structure for table `serial`
 --
 
+DROP TABLE IF EXISTS `serial`;
 CREATE TABLE `serial` (
   `serial` int(10) UNSIGNED NOT NULL,
   `name` varchar(45) NOT NULL,
@@ -317,3 +374,4 @@ ALTER TABLE `logAccessGroupKey`
 ALTER TABLE `serial`
   MODIFY `serial` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 COMMIT;
+
